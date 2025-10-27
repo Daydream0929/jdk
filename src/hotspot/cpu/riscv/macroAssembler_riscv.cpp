@@ -4943,10 +4943,13 @@ void  MacroAssembler::set_narrow_klass(Register dst, Klass* k) {
   assert(!Universe::heap()->is_in(k), "should not be an oop");
 
   narrowKlass nk = CompressedKlassPointers::encode(k);
+  bool needs_zext = ((int32_t)nk & 0x80000000) != 0;
   relocate(metadata_Relocation::spec(index), [&] {
     li32(dst, nk);
   });
-  zext(dst, dst, 32);
+  if (needs_zext) {
+    zext(dst, dst, 32);
+  }
 }
 
 address MacroAssembler::reloc_call(Address entry, Register tmp) {
